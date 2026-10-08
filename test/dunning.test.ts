@@ -16,3 +16,19 @@ test("skips reminders that are already in the past", () => {
   const reminders = scheduleReminders(invoice, new Date("2026-09-10T00:00:00Z"));
   assert.deepEqual(reminders.map((r) => r.step), [3]);
 });
+
+test("sends at 9:00 in the customer's time zone", () => {
+  const reminders = scheduleReminders(
+    { ...invoice, customerTimeZone: "America/Chicago" },
+    new Date("2026-09-01T00:00:00Z"),
+  );
+  assert.equal(reminders[0].sendAt.toISOString(), "2026-09-04T14:00:00.000Z");
+});
+
+test("falls back to UTC for unknown time zones", () => {
+  const reminders = scheduleReminders(
+    { ...invoice, customerTimeZone: "Not/A_Zone" },
+    new Date("2026-09-01T00:00:00Z"),
+  );
+  assert.equal(reminders[0].sendAt.toISOString(), "2026-09-04T09:00:00.000Z");
+});
